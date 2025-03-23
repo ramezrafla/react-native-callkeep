@@ -133,7 +133,7 @@ class RNCallKeep {
     uuid,
     handle,
     localizedCallerName = '',
-    handleType = 'number',
+    handleType = 'email',
     hasVideo = false,
     options = null
   ) => {

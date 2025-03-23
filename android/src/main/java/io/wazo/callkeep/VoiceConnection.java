@@ -69,7 +69,7 @@ public class VoiceConnection extends Connection {
         String handle = handle.get(EXTRA_CALL_HANDLE);
         String name = handle.get(EXTRA_CALLER_NAME);
 
-        if (number != null) {
+        if (handle != null) {
             setAddress(Uri.parse("mailto:" + handle), TelecomManager.PRESENTATION_ALLOWED);
         }
         if (name != null && !name.equals("")) {
