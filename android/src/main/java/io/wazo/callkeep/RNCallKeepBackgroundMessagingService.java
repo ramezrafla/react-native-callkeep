@@ -29,7 +29,7 @@ import com.facebook.react.jstasks.HeadlessJsTaskRetryPolicy;
 import com.facebook.react.jstasks.LinearCountingRetryPolicy;
 
 import static io.wazo.callkeep.Constants.EXTRA_CALLER_NAME;
-import static io.wazo.callkeep.Constants.EXTRA_CALL_NUMBER;
+import static io.wazo.callkeep.Constants.EXTRA_CALL_HANDLE;
 import static io.wazo.callkeep.Constants.EXTRA_CALL_UUID;
 
 import javax.annotation.Nullable;

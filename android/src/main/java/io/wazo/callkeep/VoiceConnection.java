@@ -46,7 +46,7 @@ import static io.wazo.callkeep.Constants.ACTION_MUTE_CALL;
 import static io.wazo.callkeep.Constants.ACTION_UNHOLD_CALL;
 import static io.wazo.callkeep.Constants.ACTION_UNMUTE_CALL;
 import static io.wazo.callkeep.Constants.EXTRA_CALLER_NAME;
-import static io.wazo.callkeep.Constants.EXTRA_CALL_NUMBER;
+import static io.wazo.callkeep.Constants.EXTRA_CALL_HANLDE;
 import static io.wazo.callkeep.Constants.EXTRA_CALL_UUID;
 import static io.wazo.callkeep.Constants.ACTION_SHOW_INCOMING_CALL_UI;
 import static io.wazo.callkeep.Constants.ACTION_ON_SILENCE_INCOMING_CALL;
@@ -66,11 +66,11 @@ public class VoiceConnection extends Connection {
         this.handle = handle;
         this.context = context;
 
-        String number = handle.get(EXTRA_CALL_NUMBER);
+        String handle = handle.get(EXTRA_CALL_HANDLE);
         String name = handle.get(EXTRA_CALLER_NAME);
 
         if (number != null) {
-            setAddress(Uri.parse(number), TelecomManager.PRESENTATION_ALLOWED);
+            setAddress(Uri.parse("mailto:" + handle), TelecomManager.PRESENTATION_ALLOWED);
         }
         if (name != null && !name.equals("")) {
             setCallerDisplayName(name, TelecomManager.PRESENTATION_ALLOWED);

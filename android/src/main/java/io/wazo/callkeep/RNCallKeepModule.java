@@ -84,7 +84,7 @@ import static androidx.core.app.ActivityCompat.requestPermissions;
 
 import static io.wazo.callkeep.Constants.EXTRA_CALLER_NAME;
 import static io.wazo.callkeep.Constants.EXTRA_CALL_UUID;
-import static io.wazo.callkeep.Constants.EXTRA_CALL_NUMBER;
+import static io.wazo.callkeep.Constants.EXTRA_CALL_HANDLE;
 import static io.wazo.callkeep.Constants.EXTRA_HAS_VIDEO;
 import static io.wazo.callkeep.Constants.EXTRA_PAYLOAD;
 import static io.wazo.callkeep.Constants.ACTION_END_CALL;
@@ -186,14 +186,14 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         return this.reactContext;
     }
 
-    public void reportNewIncomingCall(String uuid, String number, String callerName, boolean hasVideo, String payload) {
-        Log.d(TAG, "[RNCallKeepModule] reportNewIncomingCall, uuid: " + uuid + ", number: " + number + ", callerName: " + callerName);
+    public void reportNewIncomingCall(String uuid, String handle, String callerName, boolean hasVideo, String payload) {
+        Log.d(TAG, "[RNCallKeepModule] reportNewIncomingCall, uuid: " + uuid + ", handle: " + handle + ", callerName: " + callerName);
 
-        this.displayIncomingCall(uuid, number, callerName, hasVideo);
+        this.displayIncomingCall(uuid, handle, callerName, hasVideo);
 
         // Send event to JS
         WritableMap args = Arguments.createMap();
-        args.putString("handle", number);
+        args.putString("handle", handle);
         args.putString("callUUID", uuid);
         args.putString("name", callerName);
         args.putString("hasVideo", String.valueOf(hasVideo));
@@ -435,20 +435,20 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     }
 
     @ReactMethod
-    public void displayIncomingCall(String uuid, String number, String callerName, boolean hasVideo) {
-        this.displayIncomingCall(uuid, number, callerName, hasVideo, null);
+    public void displayIncomingCall(String uuid, String handle, String callerName, boolean hasVideo) {
+        this.displayIncomingCall(uuid, handle, callerName, hasVideo, null);
     }
 
-    public void displayIncomingCall(String uuid, String number, String callerName, boolean hasVideo, @Nullable Bundle payload) {
+    public void displayIncomingCall(String uuid, String handle, String callerName, boolean hasVideo, @Nullable Bundle payload) {
         if (!isConnectionServiceAvailable() || !hasPhoneAccount()) {
             Log.w(TAG, "[RNCallKeepModule] displayIncomingCall ignored due to no ConnectionService or no phone account");
             return;
         }
 
-        Log.d(TAG, "[RNCallKeepModule] displayIncomingCall, uuid: " + uuid + ", number: " + number + ", callerName: " + callerName + ", hasVideo: " + hasVideo + ", payload: " + payload);
+        Log.d(TAG, "[RNCallKeepModule] displayIncomingCall, uuid: " + uuid + ", handle: " + handle + ", callerName: " + callerName + ", hasVideo: " + hasVideo + ", payload: " + payload);
 
         Bundle extras = new Bundle();
-        Uri uri = Uri.fromParts(PhoneAccount.SCHEME_TEL, number, null);
+        Uri uri = Uri.parse("mailto:" + handle);
 
         extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_ADDRESS, uri);
         extras.putString(EXTRA_CALLER_NAME, callerName);
@@ -479,25 +479,25 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     }
 
     @ReactMethod
-    public void startCall(String uuid, String number, String callerName, boolean hasVideo) {
-        this.startCall(uuid, number, callerName, hasVideo, null);
+    public void startCall(String uuid, String handle, String callerName, boolean hasVideo) {
+        this.startCall(uuid, handle, callerName, hasVideo, null);
     }
 
-    public void startCall(String uuid, String number, String callerName, boolean hasVideo, @Nullable Bundle payload) {
-        Log.d(TAG, "[RNCallKeepModule] startCall called, uuid: " + uuid + ", number: " + number + ", callerName: " + callerName + ", payload: " + payload);
+    public void startCall(String uuid, String handle, String callerName, boolean hasVideo, @Nullable Bundle payload) {
+        Log.d(TAG, "[RNCallKeepModule] startCall called, uuid: " + uuid + ", handle: " + handle + ", callerName: " + callerName + ", payload: " + payload);
 
-        if (!isConnectionServiceAvailable() || !hasPhoneAccount() || !hasPermissions() || number == null) {
-            Log.w(TAG, "[RNCallKeepModule] startCall ignored: " + isConnectionServiceAvailable() + ", " + hasPhoneAccount() + ", " + hasPermissions() + ", " + number);
+        if (!isConnectionServiceAvailable() || !hasPhoneAccount() || !hasPermissions() || handle == null) {
+            Log.w(TAG, "[RNCallKeepModule] startCall ignored: " + isConnectionServiceAvailable() + ", " + hasPhoneAccount() + ", " + hasPermissions() + ", " + handle);
             return;
         }
 
         Bundle extras = new Bundle();
-        Uri uri = Uri.fromParts(PhoneAccount.SCHEME_TEL, number, null);
+        Uri uri = Uri.parse("mailto:" + handle);
 
         Bundle callExtras = new Bundle();
         callExtras.putString(EXTRA_CALLER_NAME, callerName);
         callExtras.putString(EXTRA_CALL_UUID, uuid);
-        callExtras.putString(EXTRA_CALL_NUMBER, number);
+        callExtras.putString(EXTRA_CALL_HANDLE, handle);
         callExtras.putString(EXTRA_HAS_VIDEO, String.valueOf(hasVideo));
         if (payload != null) {
             callExtras.putBundle(EXTRA_PAYLOAD, payload);
@@ -1305,7 +1305,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                     sendEventToJS("RNCallKeepDidPerformDTMFAction", args);
                     break;
                 case ACTION_ONGOING_CALL:
-                    args.putString("handle", attributeMap.get(EXTRA_CALL_NUMBER));
+                    args.putString("handle", attributeMap.get(EXTRA_CALL_HANDLE));
                     args.putString("callUUID", attributeMap.get(EXTRA_CALL_UUID));
                     args.putString("name", attributeMap.get(EXTRA_CALLER_NAME));
                     sendEventToJS("RNCallKeepDidReceiveStartCallAction", args);
@@ -1317,7 +1317,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                     sendEventToJS("RNCallKeepCheckReachability", null);
                     break;
                 case ACTION_SHOW_INCOMING_CALL_UI:
-                    args.putString("handle", attributeMap.get(EXTRA_CALL_NUMBER));
+                    args.putString("handle", attributeMap.get(EXTRA_CALL_HANDLE));
                     args.putString("callUUID", attributeMap.get(EXTRA_CALL_UUID));
                     args.putString("name", attributeMap.get(EXTRA_CALLER_NAME));
                     args.putString("hasVideo", attributeMap.get(EXTRA_HAS_VIDEO));
@@ -1327,8 +1327,8 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                     Intent headlessIntent = new Intent(reactContext, RNCallKeepBackgroundMessagingService.class);
                     headlessIntent.putExtra("callUUID", attributeMap.get(EXTRA_CALL_UUID));
                     headlessIntent.putExtra("name", attributeMap.get(EXTRA_CALLER_NAME));
-                    headlessIntent.putExtra("handle", attributeMap.get(EXTRA_CALL_NUMBER));
-                    Log.d(TAG, "[RNCallKeepModule] wakeUpApplication: " + attributeMap.get(EXTRA_CALL_UUID) + ", number : " + attributeMap.get(EXTRA_CALL_NUMBER) + ", displayName:" + attributeMap.get(EXTRA_CALLER_NAME));
+                    headlessIntent.putExtra("handle", attributeMap.get(EXTRA_CALL_HANDLE));
+                    Log.d(TAG, "[RNCallKeepModule] wakeUpApplication: " + attributeMap.get(EXTRA_CALL_UUID) + ", handle : " + attributeMap.get(EXTRA_CALL_HANDLE) + ", displayName:" + attributeMap.get(EXTRA_CALLER_NAME));
 
                     ComponentName name = reactContext.startService(headlessIntent);
                     if (name != null) {
@@ -1336,19 +1336,19 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
                     }
                     break;
                 case ACTION_ON_SILENCE_INCOMING_CALL:
-                    args.putString("handle", attributeMap.get(EXTRA_CALL_NUMBER));
+                    args.putString("handle", attributeMap.get(EXTRA_CALL_HANDLE));
                     args.putString("callUUID", attributeMap.get(EXTRA_CALL_UUID));
                     args.putString("name", attributeMap.get(EXTRA_CALLER_NAME));
                     sendEventToJS("RNCallKeepOnSilenceIncomingCall", args);
                     break;
                 case ACTION_ON_CREATE_CONNECTION_FAILED:
-                    args.putString("handle", attributeMap.get(EXTRA_CALL_NUMBER));
+                    args.putString("handle", attributeMap.get(EXTRA_CALL_HANDLE));
                     args.putString("callUUID", attributeMap.get(EXTRA_CALL_UUID));
                     args.putString("name", attributeMap.get(EXTRA_CALLER_NAME));
                     sendEventToJS("RNCallKeepOnIncomingConnectionFailed", args);
                     break;
                 case ACTION_DID_CHANGE_AUDIO_ROUTE:
-                    args.putString("handle", attributeMap.get(EXTRA_CALL_NUMBER));
+                    args.putString("handle", attributeMap.get(EXTRA_CALL_HANDLE));
                     args.putString("callUUID", attributeMap.get(EXTRA_CALL_UUID));
                     args.putString("output", attributeMap.get("output"));
                     sendEventToJS("RNCallKeepDidChangeAudioRoute", args);
