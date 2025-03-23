@@ -361,8 +361,8 @@ public class VoiceConnectionService extends ConnectionService {
         }
     }
 
-    private void wakeUpApplication(String uuid, String number, String displayName) {
-         Log.d(TAG, "[VoiceConnectionService] wakeUpApplication, uuid:" + uuid + ", number :" + number + ", displayName:" + displayName);
+    private void wakeUpApplication(String uuid, String handle, String displayName) {
+         Log.d(TAG, "[VoiceConnectionService] wakeUpApplication, uuid:" + uuid + ", handle :" + handle + ", displayName:" + displayName);
 
         // Avoid to call wake up the app again in wakeUpAfterReachabilityTimeout.
         this.currentConnectionRequest = null;
@@ -374,7 +374,7 @@ public class VoiceConnectionService extends ConnectionService {
             );
             headlessIntent.putExtra("callUUID", uuid);
             headlessIntent.putExtra("name", displayName);
-            headlessIntent.putExtra("handle", number);
+            headlessIntent.putExtra("handle", handle);
 
             ComponentName name = this.getApplicationContext().startService(headlessIntent);
             if (name != null) {
@@ -391,11 +391,11 @@ public class VoiceConnectionService extends ConnectionService {
             return;
         }
         Bundle extras = request.getExtras();
-        String number = request.getAddress().getSchemeSpecificPart();
+        String handle = request.getAddress();
         String displayName = extras.getString(EXTRA_CALLER_NAME);
-        Log.d(TAG, "[VoiceConnectionService] checkReachability timeout, force wakeup, number :" + number + ", displayName: " + displayName);
+        Log.d(TAG, "[VoiceConnectionService] checkReachability timeout, force wakeup, handle :" + handle + ", displayName: " + displayName);
 
-        wakeUpApplication(this.notReachableCallUuid, number, displayName);
+        wakeUpApplication(this.notReachableCallUuid, handle, displayName);
 
         VoiceConnectionService.currentConnectionRequest = null;
     }
