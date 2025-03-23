@@ -435,11 +435,6 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     }
 
     @ReactMethod
-    public void displayIncomingCall(String uuid, String number, String callerName) {
-        this.displayIncomingCall(uuid, number, callerName, false, null);
-    }
-
-    @ReactMethod
     public void displayIncomingCall(String uuid, String number, String callerName, boolean hasVideo) {
         this.displayIncomingCall(uuid, number, callerName, hasVideo, null);
     }
@@ -481,11 +476,6 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         }
 
         conn.onAnswer();
-    }
-
-    @ReactMethod
-    public void startCall(String uuid, String number, String callerName) {
-        this.startCall(uuid, number, callerName, false, null);
     }
 
     @ReactMethod
@@ -669,11 +659,6 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     @ReactMethod
     public void checkDefaultPhoneAccount(Promise promise) {
         if (!isConnectionServiceAvailable() || !hasPhoneAccount()) {
-            promise.resolve(true);
-            return;
-        }
-
-        if (!Build.MANUFACTURER.equalsIgnoreCase("Samsung")) {
             promise.resolve(true);
             return;
         }
@@ -1018,23 +1003,18 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
             return;
         }
 
-        if (Build.MANUFACTURER.equalsIgnoreCase("Samsung") || Build.MANUFACTURER.equalsIgnoreCase("OnePlus")) {
-            Intent intent = new Intent();
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-            intent.setComponent(new ComponentName("com.android.server.telecom",
-                    "com.android.server.telecom.settings.EnableAccountPreferenceActivity"));
+        Intent intent = new Intent();
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+        intent.setComponent(new ComponentName("com.android.server.telecom",
+                "com.android.server.telecom.settings.EnableAccountPreferenceActivity"));
 
-            Context context = this.getAppContext();
-            if (context == null) {
-                Log.w(TAG, "[RNCallKeepModule][openPhoneAccounts] no react context found.");
-                return;
-            }
-
-            context.startActivity(intent);
+        Context context = this.getAppContext();
+        if (context == null) {
+            Log.w(TAG, "[RNCallKeepModule][openPhoneAccounts] no react context found.");
             return;
         }
 
-        openPhoneAccountSettings();
+        context.startActivity(intent);
     }
 
     @ReactMethod
@@ -1086,14 +1066,16 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         if (isOpened) {
             focusIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             activity.startActivity(focusIntent);
-        } else {
-            focusIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK +
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED +
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD +
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-
-            getReactApplicationContext().startActivity(focusIntent);
+            return;
         }
+        activity.setShowWhenLocked(true);
+        activity.setTurnScreenOn(true);
+        focusIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK +
+            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED +
+            WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD +
+            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        );
+        getReactApplicationContext().startActivity(focusIntent);
     }
 
     public static void onRequestPermissionsResult(int requestCode, String[] grantedPermissions, int[] grantResults) {
